@@ -1,145 +1,219 @@
-# Express Intro
+# Express GET Requests
 
-## Full Stack
+In addition to sending back static files, we can also send back *dynamic* data. 
 
-### Background
+Let's make an application to get an inspirational quote! 
 
-```
-,________,         .------,    |      .------,         .------.
-|________|       ,'_____,'|    |    ,'_____,'|        (        )
-|        |       |      | |    |    | ____ | |        |~------~|
-|        |       |      | |    |    | ____ | |        |~------~|
-|        |       |      | ;    |    | ____ | ;        |~------~|
-|________|       |______|'     |    |______|'         `.______.'
- HTML/CSS           JS         |  Node / Express       Database
-                               |                   
-           CLIENT              |             SERVER           
-```
-
-### How does the internet work?
-Up to this point, we've been using our local computer to help *serve* files. But no one else could access them. 
-The internet is possible because we tell a computer that it expects to get connections from other computers. 
-The computers expecting connections are called Servers. 
-In order to have your computer expect connections, we need code.
-**Client** code runs in the _browser_. **Server** code runs on the _server_ (in the cloud).
-
-When you go to www.google.com, you are connecting to a server.  
-That server is expecting you, and *serves* you back the static index.html. 
-It also can *serve* your static assets -- images, css, js, fonts, etc. 
-
-Today, we will be building your first static file server. WOAH!
-
-
-> **NOTE:** Project names (when running `npm init`) can not have capital letters or spaces.
-
-[Express](https://expressjs.com/) is a Node.js web application framework. It simplifies the process for accepting requests and returning responses on the server. Express allows us to respond to URLs.
-
-## Setup Instructions
-1. Create a new repository on GitHub with a project name (initialize with a README.md)
-2. Clone the repo on to your computer
-3. Create a `.gitignore` file and ignore `node_modules/`, `.DS_Store` and `*.log`
-  
-  **.gitignore**
-
-  ```
-  node_modules/
-  .DS_Store
-  *.log
-  ```
-  
-  ## Make a Static Server Steps
- - Get our folders and files in place
- - Allow for incoming requests to be accepted
- - Respond with our assets
-  
-4. Create your folder structure:
-
-  ```
-  salary-calculator-server/
-  ├── server/
-  │   ├── public/
-  │   │   ├── scripts/
-  │   │   │   └── client.js
-  │   │   ├── styles/
-  │   │   │   └── style.css
-  │   │   └── index.html
-  │   └── server.js
-  ├── node_modules/
-  │   ├── express/
-  │   └── ...
-  └── .gitignore
-  ```
-
-  > NOTE: The `node_modules` folder is auto generated.
-
-5. In the project folder, run `npm init --yes`
-6. Install express `npm install express`
-7. Install body-parser (for anything with a post) `npm install body-parser`
-    - Don't forget to add `app.use(bodyParser.urlencoded({extended: true});`
-8. If you made a mistake, that's ok, you can always `npm uninstall some-thing`
-
-## NPM
-
-Notice above we are using a program called `npm` to install things called 'packages.'
-
-[Node Package Manager](https://www.npmjs.com/) 
-
-> npm is the package manager for JavaScript and the world’s largest software registry. Discover packages of reusable code — and assemble them in powerful new ways.
-
-NPM allows us to use code written by others or even to share our own Node project. NPM is a registry (and a tool) to help manage and access a ton of pre-made code. Most popular packages can be installed via the `npm` tool.
-
-## Setup Our Server
-
-### Rebooting a Node Server
-- `ctrl-c`
+Start by setting up Express in our `server.js`:
 
 **server.js**
-
 ```JavaScript
-// Require express - gives us a function
-const express = require('express');
+let express = require('express');
+let app = express();
+const PORT = 5000;
 
-// Create an instance of express by calling the function returned above - gives us an object
-const app = express();
-const port = 5000;
-
-// express static file serving - public is the folder name
+// Setup express.static files
 app.use(express.static('server/public'));
 
-// Start up our server
-app.listen(port, () => {
-  console.log('listening on port', port);
+app.listen(port, function(){
+    console.log('listening on port', PORT);
 });
 ```
+
+Let's add some quotes in an array, so we have some data to work with:
+
+```JavaScript
+let quoteList = [
+    { text: 'I\'m not going to school just for the academics - I wanted to share ideas, to be around people who are passionate about learning.', author: 'Emma Watson' },
+    { text: 'Remember there\'s no such thing as a small act of kindness. Every act creates a ripple with no logical end.', author: 'Scott Adams' },
+    { text: 'Intelligence plus character-that is the goal of true education.', author: 'Martin Luther King, Jr.' }
+];
+```
+
+Now let's setup a way to get those quotes back from the server. We will setup a `route` or URL that will send back data on request.
+
+```JavaScript
+
+// When we visit http://localhost:5000/quotes
+// in our browser, express will call this function
+app.get('/quotes', (req, res) => {
+    console.log('Request for /quotes was made');
+
+    // Send back the list of quotes
+    // so we can see it in our browser
+    res.send(quoteList);
+});
+```
+
+When we make a request to `http://localhost:5000/quotes`, we will see the list of quotes, as an array.
 
 #### Callback syntax
 ```js
-app.listen(port, () => {
-  console.log('listening on port', port);
+app.get('/quotes', (req, res) => {
+// ...code
+}
+
+```
+This is another callback! We're saying -- when the server recieves a GET request from the client, at the `/quotes` route, please run my function!
+
+Here's a non-code example. You go to the auto mechanic for an oil change. You want Synthetic oil. They say "It will take an hour, what phone number can we call you at when we're done?" You give them your phone number and go do other things. Then, when the oil change is done, they call you letting you know that they're done.
+
+Here is that example in psuedocode:
+```
+mechanic.oilChange('Synthetic', () => {
+  callPhone('555-5555')
+})
+```
+
+## Terminology
+
+Let's go over the different pieces of this express code.
+
+**Route / Path / URL**
+
+This is the URL that we visit to get quotes from the server. In this case the _route_ is `/quotes`. We'll use the terms _route_, _path_, and _URL_ somewhat interchangeably.
+
+It is a convention that the route is a _noun_, which describes _what_ kind of data you are working with.
+
+In express, the route is the first argument to `app.get()`:
+
+```js
+app.get('/quotes', function(req, res) {
+//       ^ this is the route!
+```
+
+**Method**
+
+This is your _verb_ -- it describes _how_ you want to interact with the route. In our case, we want to _get_ quote data from our server, so our method is `GET`. The most common methods are:
+
+- `GET`: retrieve data from the server
+- `POST`: save new data to the server
+- `PUT`: update some data on the server
+- `DELETE`: delete some data on the server
+
+For this week, we'll mostly be dealing with `GET` and `POST`.
+
+In express, the _method_ is the function name, as in `app.<method>()`
+
+```js
+app.get('/quotes', function(req, res) {
+//  ^ this is the method!
+```
+
+**Request**
+
+A _request_ is what the _client_ (browser) sends to the server. The request includes a _route_, a _method_, and, optionally, a body.
+
+To access information about the request, we can use the `req` argument to our express callback:
+
+```js
+app.get('/quotes', function(req, res) {
+    // `req` is an object with all sorts of information
+    // about the request
+})
+```
+
+**Response**
+
+A _response_ is what the _server_ sends back to the client (browser). The response includes a status code, and optionally a body.
+
+In express, we use the `res` argument to send a response:
+
+```js
+app.get('/quotes', function(req, res) {
+    // `res.send()` sends data back to the client
+    res.send(quotes)
+})
+```
+
+
+**Request / Response Body**
+
+A body is the data sent from the server to the client (or vice-versa). In our case, we're sending the `quotes` array back to the client, as the response body.
+
+```js
+app.get('/quotes', function(req, res) {
+    // Whatever we pass to `res.send()` is the response body
+    res.send(quotes)
+})
+```
+
+**Status Code**
+
+Every response comes with a _status code_. This is a shorthand for telling the client about the status of the request.
+
+Common status codes are:
+
+- `200 OK`: Everything is A-OK!
+- `201 Created`: The server created some new data for you
+- `400 Bad Request`: The client sent some bad data
+- `404 Not Found`: That URL or endpoint is not available
+- `500 Server Error`: Something bad happened on the server.
+
+By default `res.send()` uses a `200` status code. But we can change the code:
+
+```js
+app.get('/quotes', function(req, res) {
+    res.status(400).send('That request was not valid!');
+})
+```
+
+...or _just_ send back a status (with no body)
+
+```js
+app.get('/quotes', function(req, res) {
+    // Something bad happened.... panic!
+    res.sendStatus(500)
+})
+```
+
+**API**
+
+API is short for "Application Programming Interface", but it basically means "a way for programs to communicate with each other". In our case, we're talking about a web server that can send data back and forth to a client. 
+
+Congratulations, you just built your first API!
+
+**HTTP**
+
+HTTP is the specification that describes everything we just talked about. So the fact that a request is made of a route and a method, etc... this is all described in the HTTP spec. 
+
+### Modules!
+
+Modules are a way to organize server side code. They allow us to group functionality and re-use it throughout our application.
+
+Let's update our quotes application to move the quotes data into a module!
+
+**server.js**
+```JavaScript
+let express = require('express');
+let app = express();
+const PORT = 5000;
+
+// Setup express.static files
+app.use(express.static('server/public'));
+
+// Bring in the quotes module
+const quoteList = require('./modules/quoteList');
+
+// GET route - gets next quote to show
+app.get('/quotes', function(req, res) {
+    console.log('GET Request for quotes');
+    res.send(quoteList);
+});
+
+app.listen(PORT, function(){
+    console.log('listening on port', PORT);
 });
 ```
-This is a funny looking line of code. Notice we're using the `.listen` method. Its being given two things -- one is the `PORT` we want to listen on, the second is... a function!
 
-That function is called a callback function. Callbacks are a very common pattern in javascript. Basically, we say: When you start the server, please also run this function too. That way, when the server starts, we can run our own code!
+**modules/quoteList.js**
+```JavaScript
+let quoteList = [
+    { text: 'I\'m not going to school just for the academics - I wanted to share ideas, to be around people who are passionate about learning.', author: 'Emma Watson' },
+    { text: 'Remember there\'s no such thing as a small act of kindness. Every act creates a ripple with no logical end.', author: 'Scott Adams' },
+    { text: 'Intelligence plus character-that is the goal of true education.', author: 'Martin Luther King, Jr.' }
+];
 
 
-
-At this point we could start our server using `node server/server.js`. To simplify things we can add the following line to our `package.json` file.
-
-**package.json**
-
-```json
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server/server.js"
-  },
+module.exports = quoteList;
 ```
-
-## Add HTML, CSS & JavaScript
-
-For this example, use your weekend assignment. Bring in the HTML, CSS, and JavaScript files to use for testing.
-
-## Testing the Server
-
-You should be able to run your code by navigating to [http://localhost:5000](http://localhost:5000).
-
